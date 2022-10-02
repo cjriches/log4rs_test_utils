@@ -104,7 +104,7 @@ pub fn logging_test_setup(config: Config) -> MutexGuard<'static, ()> {
     }
 }
 
-/// A convenient wrapper for `test_setup` that configures the global logger with
+/// A convenient wrapper for `logging_test_setup` that configures the global logger with
 /// a fresh `MockAppender`.
 /// If not supplied, the level defaults to `Trace`, and the encoder to a `PatternEncoder` with
 /// the pattern `{l} {t} {m}`.
