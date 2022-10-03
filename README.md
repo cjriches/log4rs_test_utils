@@ -1,12 +1,30 @@
 log4rs Test Utils
 ========================
 
-This crate provides utilities that make testing logging with `log4rs` much easier.
-Firstly, this crate provides the `MockAppender`: an `Appender` which logs all messages to a `Vec<String>` that can be inspected by test code.
-Secondly, this crate provides the `logging_test_setup` and `logging_test_setup_mock` functions, which handle configuration and serialization of logging tests (unfortunately, logging tests cannot run in parallel due to the global logger configuration enforced by the `log` crate).
+This crate aims to solve the headache that often occurs when combining              
+testing with logging. It is split into two halves depending on your use             
+case: do you want to test your logs or log your tests?
+
+# Testing your logs
+If you want to test your logs, i.e. write tests that make assertions about          
+your log output, then look to `log_testing`. Contents include:
+* `MockAppender`, an appender that saves all logs to a `Vec<String>` for
+  programmatic inspection.
+* `logging_test_setup`, which handles test setup by configuring the logger and
+  serializing all logging tests to make sure they don't conflict.
+* `logging_test_setup_mock` which does the same, but automatically creates a
+  `MockAppender` for you to save even more effort.
+
+# Logging your tests
+If you want to log your tests, i.e. set up a logger and capture the results         
+for debugging your unit and integration tests, then look to `test_logging`.
+Contents include:
+* `TestConsoleAppender`, an appender which ensures logs are actually captured
+  by the default test harness rather than spewed all over your lovely console.
 
 ## Example usage
 ```rust
+use log::{error, info};
 use log4rs_test_utils::logging_test_setup_mock;
 
 #[test]
