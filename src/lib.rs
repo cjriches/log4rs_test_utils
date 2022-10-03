@@ -21,6 +21,12 @@
 //! * [`TestConsoleAppender`](test_logging::TestConsoleAppender), an appender
 //!   which ensures logs are actually captured by the default test harness rather
 //!   than spewed all over your lovely console.
+//! * [`init_logging_once`](test_logging::init_logging_once), which ensures
+//!   your logging only gets initialized once, even if many tests are running
+//!   in parallel.
+//! * [`init_logging_once_for`](test_logging::init_logging_once_for), which
+//!   does the same, but automatically creates a sensible config for the given
+//!   targets.
 //!
 //! # Features
 //! The two halves of this module are feature-gated, so you can disable anything

@@ -15,14 +15,7 @@ your log output, then look to `log_testing`. Contents include:
 * `logging_test_setup_mock` which does the same, but automatically creates a
   `MockAppender` for you to save even more effort.
 
-# Logging your tests
-If you want to log your tests, i.e. set up a logger and capture the results         
-for debugging your unit and integration tests, then look to `test_logging`.
-Contents include:
-* `TestConsoleAppender`, an appender which ensures logs are actually captured
-  by the default test harness rather than spewed all over your lovely console.
-
-## Example usage
+### Example usage
 ```rust
 use log::{error, info};
 use log4rs_test_utils::logging_test_setup_mock;
@@ -40,6 +33,37 @@ fn simple_mock_example() {
     assert_eq!(logs.iter().filter(|s| s.contains("INFO")).count(), 2);
     assert_eq!(logs.iter().filter(|s| s.contains("ERROR")).count(), 1);
     assert_eq!(logs.iter().filter(|s| s.contains(", world")).count(), 2);
+}
+```
+
+# Logging your tests
+If you want to log your tests, i.e. set up a logger and capture the results
+for debugging your unit and integration tests, then look to `test_logging`.
+Contents include:
+* `TestConsoleAppender`, an appender which ensures logs are actually captured
+  by the default test harness rather than spewed all over your lovely console.
+* `init_logging_once`, which ensures your logging only gets initialized once,
+  even if many tests are running  in parallel.
+* `init_logging_once_for`, which does the same, but automatically creates a
+  sensible config for the given targets.
+
+### Example usage
+```rust
+use log::{info, LevelFilter};
+use log4rs_test_utils::test_logging::init_logging_once_for;
+
+fn some_fn(x: u32) -> u32 {
+    info!(target: "foo", "some_fn called with {x}");
+    panic!("This test will fail, but we'll have the logs to debug it.");
+    x + 1
+}
+
+#[test]
+fn some_test() {
+    init_logging_once_for(vec!["foo", "bar"], LevelFilter::Debug, None);
+
+    let y = some_fn(5);
+    assert_eq!(y, 6);
 }
 ```
 
