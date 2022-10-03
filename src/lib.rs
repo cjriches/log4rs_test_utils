@@ -6,7 +6,7 @@ use log4rs::{
     encode::{self, pattern::PatternEncoder, Encode},
     Config, Handle,
 };
-use std::io;
+use std::io::{self, Write};
 use std::sync::{Arc, Mutex, MutexGuard};
 
 /// A thread-safe handle to a list of log messages.
@@ -48,6 +48,35 @@ impl Append for MockAppender {
     }
 }
 
+/// An appender that uses `print!()` internally. This is less performant than
+/// a normal `ConsoleAppender`, but ensures output gets captured by the
+/// standard test harness.
+#[derive(Debug)]
+pub struct TestConsoleAppender {
+    encoder: Box<dyn Encode>,
+}
+
+impl TestConsoleAppender {
+    /// Create a new `TestConsoleAppender` with the given encoder.
+    pub fn new(encoder: Box<dyn Encode>) -> Self {
+        Self { encoder }
+    }
+}
+
+impl Append for TestConsoleAppender {
+    fn append(&self, record: &Record) -> anyhow::Result<()> {
+        let mut log_line = StringBuffer::new();
+        self.encoder.encode(&mut log_line, record)?;
+        print!("{}", log_line.0);
+        io::stdout().flush()?;
+        Ok(())
+    }
+
+    fn flush(&self) {
+        // no-op, since every log is flushed by default
+    }
+}
+
 /// A simple string buffer that can be written to by an encoder.
 /// We assume UTF-8 encoding.
 #[derive(Debug)]
@@ -59,7 +88,7 @@ impl StringBuffer {
     }
 }
 
-impl io::Write for StringBuffer {
+impl Write for StringBuffer {
     fn write(&mut self, buf: &[u8]) -> io::Result<usize> {
         let buf_encoded = String::from_utf8(buf.to_vec())
             .map_err(|_| io::Error::new(io::ErrorKind::InvalidData, "invalid UTF-8"))?;
