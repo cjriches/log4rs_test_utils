@@ -31,15 +31,15 @@ use std::sync::atomic::{AtomicBool, Ordering};
 use crate::string_buffer::StringBuffer;
 
 /// An appender that uses [`print!`] internally. This is less performant than
-/// a normal [`ConsoleAppender`](log4rs::append::console::ConsoleAppender),
-/// but ensures output gets captured by the standard test harness.
+/// a normal `ConsoleAppender`, but ensures output gets captured by the
+/// standard test harness.
 #[derive(Debug)]
 pub struct TestConsoleAppender {
     encoder: Box<dyn Encode>,
 }
 
 impl TestConsoleAppender {
-    /// Create a new `TestConsoleAppender` with the given encoder.
+    /// Create a new [`TestConsoleAppender`] with the given encoder.
     pub fn new(encoder: Box<dyn Encode>) -> Self {
         Self { encoder }
     }
