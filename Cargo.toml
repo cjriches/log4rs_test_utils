@@ -1,12 +1,13 @@
 [package]
 name = "log4rs_test_utils"
-version = "0.1.0"
+version = "0.2.0"
 authors = ["Chris Riches"]
 edition = "2021"
-description = "Utilities for testing log4rs-based logging, whether you want to test your logs or log your tests."
+description = "Utilities for testing log4rs-based logging, whether you want to log your tests or test your logs."
 readme = "README.md"
 repository = "https://github.com/cjriches/log4rs_test_utils"
 license = "MIT OR Apache-2.0"
+keywords = ["log", "logging", "log4rs", "test"]
 
 [features]
 default = ["log_testing", "test_logging"]
