@@ -76,7 +76,7 @@ already been set by someone else!"
     }
 }
 
-/// Like [`init_logging_once`], but constructs a sensible config for you.
+/// Like [`init_logging_once`], but constructs a sensible config for the given targets.
 ///
 /// If `targets` is empty, the root logger will be configured at the given `level`.
 /// If `targets` is non-empty, the root logger will be disabled and all the

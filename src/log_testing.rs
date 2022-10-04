@@ -1,4 +1,5 @@
 //! Utilities for log testing, i.e. tests which ensure the log output is correct.
+//!
 //! These are most useful to developers of [`log4rs`] extension libraries, although
 //! any application could choose to test its log output.
 //! Unless you fall into that narrow camp, you probably want [`test_logging`].
@@ -87,10 +88,11 @@ lazy_static! {
 /// the logging.
 static TEST_MUTEX: Mutex<()> = Mutex::new(());
 
-/// Call this at the start of a test to configure the logger. The returned mutex
-/// guard ensures no other logging test can execute simultaneously; this is vital
-/// for correctness since there is only one global logger. Do not drop it until
-/// the end of the test.
+/// Call this at the start of a logging test to configure the logger.
+///
+/// The returned mutex guard ensures no other logging test can execute
+/// simultaneously; this is vital for correctness since there is only one
+/// global logger. Do not drop it until the end of the test.
 pub fn logging_test_setup(config: Config) -> MutexGuard<'static, ()> {
     let guard = TEST_MUTEX.lock();
     HANDLE.set_config(config);
@@ -105,8 +107,10 @@ pub fn logging_test_setup(config: Config) -> MutexGuard<'static, ()> {
 
 /// A convenient wrapper for [`logging_test_setup`] that configures the global
 /// logger with a fresh [`MockAppender`].
-/// If not supplied, the level defaults to `Trace`, and the encoder to a
-/// [`PatternEncoder`] with the pattern `{l} {t} {m}`.
+///
+/// Defaults:
+/// * `level = LevelFilter::Trace`
+/// * `encoder = PatternEncoder with pattern "{l} {t} {m}"`
 pub fn logging_test_setup_mock(
     level: impl Into<Option<LevelFilter>>,
     encoder: impl Into<Option<Box<dyn Encode>>>,
