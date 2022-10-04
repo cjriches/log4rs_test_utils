@@ -48,10 +48,7 @@ pub struct MockAppender {
 impl MockAppender {
     /// Create a new [`MockAppender`], returning it along with a handle to its
     /// log buffer.
-    pub fn new(encoder: impl Into<Option<Box<dyn Encode>>>) -> (Self, LogsHandle) {
-        let encoder = encoder
-            .into()
-            .unwrap_or_else(|| Box::new(PatternEncoder::default()));
+    pub fn new(encoder: Box<dyn Encode>) -> (Self, LogsHandle) {
         let logs: LogsHandle = Default::default();
         let appender = Self {
             logs: logs.clone(),
