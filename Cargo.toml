@@ -1,6 +1,6 @@
 [package]
 name = "log4rs_test_utils"
-version = "0.2.0"
+version = "0.2.1"
 authors = ["Chris Riches"]
 edition = "2021"
 description = "Utilities for testing log4rs-based logging, whether you want to log your tests or test your logs."
