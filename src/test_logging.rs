@@ -26,7 +26,7 @@ use log4rs::{
     encode::{pattern::PatternEncoder, Encode},
 };
 use std::io::{self, Write};
-use std::sync::atomic::{AtomicBool, Ordering};
+use std::sync::Once;
 
 use crate::string_buffer::StringBuffer;
 
@@ -60,12 +60,12 @@ impl Append for TestConsoleAppender {
 }
 
 /// The first time this is called, the global logger will be initialized
-/// with the given config. Subsequent calls are no-ops, so this is safe
-/// to call from every test.
+/// with the given config. Once this returns, it is guaranteed that the global
+/// logger has been configured exactly once, though not necessarily by this
+/// invocation.
 pub fn init_logging_once(config: Config) {
-    static INIT_DONE: AtomicBool = AtomicBool::new(false);
-
-    if !INIT_DONE.swap(true, Ordering::Relaxed) {
+    static INIT: Once = Once::new();
+    INIT.call_once(|| {
         let result = log4rs::init_config(config);
         if result.is_err() {
             warn!(
@@ -73,7 +73,7 @@ pub fn init_logging_once(config: Config) {
 already been set by someone else!"
             );
         }
-    }
+    });
 }
 
 /// Like [`init_logging_once`], but constructs a sensible config for the given targets.

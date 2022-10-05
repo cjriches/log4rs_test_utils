@@ -1,5 +1,8 @@
 # Changelog
 
+## Unreleased
+* Fixed a bug where tests using `init_logging_once` could begin before the logger was fully initialized.
+
 ## v0.2.1
 * Removed unnecessary features from dependencies.
   This avoids unnecessarily transitively enabling them in dependent crates.
