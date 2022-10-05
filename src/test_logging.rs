@@ -43,6 +43,54 @@ impl TestConsoleAppender {
     pub fn new(encoder: Box<dyn Encode>) -> Self {
         Self { encoder }
     }
+
+    /// Construct a sensible [`Config`] using a [`TestConsoleAppender`] and [`PatternEncoder`].
+    ///
+    /// If `targets` is empty, the root logger will be enabled at the given `level`.
+    /// If `targets` is non-empty, the root logger will be disabled and all the
+    /// given `targets` enabled at the given `level`.
+    ///
+    /// Defaults:
+    /// * `level = LevelFilter::Trace`
+    /// * `pattern = "{l} {M}::{L} {m}{n}"`
+    ///
+    /// Duplicate entries in `targets` are not allowed and will panic.
+    pub fn make_config<'a, 'b>(
+        targets: impl IntoIterator<Item = &'a str>,
+        level: impl Into<Option<LevelFilter>>,
+        pattern: impl Into<Option<&'b str>>,
+    ) -> Config {
+        let level = level.into().unwrap_or(LevelFilter::Trace);
+        let pattern = pattern.into().unwrap_or("{l} {M}::{L} {m}{n}");
+        const APPENDER_NAME: &str = "appender";
+
+        // Create encoder and appender.
+        let encoder = Box::new(PatternEncoder::new(pattern));
+        let console = Box::new(TestConsoleAppender::new(encoder));
+        let appender = Appender::builder().build(APPENDER_NAME, console);
+
+        // Create a logger for each target.
+        let mut loggers = Vec::new();
+        for target in targets {
+            let logger = Logger::builder()
+                .appender(APPENDER_NAME)
+                .build(target, level);
+            loggers.push(logger);
+        }
+
+        // Create the root logger and final config.
+        if loggers.is_empty() {
+            let root = Root::builder().appender(APPENDER_NAME).build(level);
+            Config::builder().appender(appender).build(root).unwrap()
+        } else {
+            let root = Root::builder().build(LevelFilter::Off);
+            Config::builder()
+                .appender(appender)
+                .loggers(loggers)
+                .build(root)
+                .unwrap()
+        }
+    }
 }
 
 impl Append for TestConsoleAppender {
@@ -78,18 +126,10 @@ already been set by someone else!"
     });
 }
 
-/// Like [`init_logging_once`], but constructs a sensible config for the given targets.
+/// A convenient wrapper for [`TestConsoleAppender::make_config`] and [`init_logging_once`],
+/// which initializes logging once with a sensible config for the given targets.
 ///
-/// If `targets` is empty, the root logger will be configured at the given `level`.
-/// If `targets` is non-empty, the root logger will be disabled and all the
-/// given `targets` configured at the given `level`.
-/// The configured appender will be a [`TestConsoleAppender`] with a [`PatternEncoder`].
-///
-/// Defaults:
-/// * `level = LevelFilter::Trace`
-/// * `pattern = {l} {M}::{L} {m}{n}`
-///
-/// Duplicate entries in `targets` are not allowed and will panic.
+/// See [`TestConsoleAppender::make_config`] for details.
 pub fn init_logging_once_for<'a, 'b>(
     targets: impl IntoIterator<Item = &'a str>,
     level: impl Into<Option<LevelFilter>>,
@@ -99,38 +139,6 @@ pub fn init_logging_once_for<'a, 'b>(
     if INIT.is_completed() {
         return;
     }
-
-    let level = level.into().unwrap_or(LevelFilter::Trace);
-    let pattern = pattern.into().unwrap_or("{l} {M}::{L} {m}{n}");
-    const APPENDER_NAME: &str = "appender";
-
-    // Create encoder and appender.
-    let encoder = Box::new(PatternEncoder::new(pattern));
-    let console = Box::new(TestConsoleAppender::new(encoder));
-    let appender = Appender::builder().build(APPENDER_NAME, console);
-
-    // Create a logger for each target.
-    let mut loggers = Vec::new();
-    for target in targets {
-        let logger = Logger::builder()
-            .appender(APPENDER_NAME)
-            .build(target, level);
-        loggers.push(logger);
-    }
-
-    // Create the root logger and final config.
-    let config = if loggers.is_empty() {
-        let root = Root::builder().appender(APPENDER_NAME).build(level);
-        Config::builder().appender(appender).build(root).unwrap()
-    } else {
-        let root = Root::builder().build(LevelFilter::Off);
-        Config::builder()
-            .appender(appender)
-            .loggers(loggers)
-            .build(root)
-            .unwrap()
-    };
-
-    // Pass the config to the initializer.
+    let config = TestConsoleAppender::make_config(targets, level, pattern);
     init_logging_once(config);
 }

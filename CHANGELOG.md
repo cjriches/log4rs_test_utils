@@ -1,5 +1,9 @@
 # Changelog
 
+## Unreleased
+* Added `TestConsoleAppender::make_config` to get the config used by `init_logging_once_for`
+  without actually initializing the logger with it.
+
 ## v0.2.2
 * Fixed a bug where tests using `init_logging_once` could begin before the logger was fully initialized.
 * Made repeated invocations of `init_logging_once_for` more efficient.
