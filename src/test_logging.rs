@@ -59,12 +59,14 @@ impl Append for TestConsoleAppender {
     }
 }
 
+/// Synchronisation for [`init_logging_once`].
+static INIT: Once = Once::new();
+
 /// The first time this is called, the global logger will be initialized
 /// with the given config. Once this returns, it is guaranteed that the global
 /// logger has been configured exactly once, though not necessarily by this
 /// invocation.
 pub fn init_logging_once(config: Config) {
-    static INIT: Once = Once::new();
     INIT.call_once(|| {
         let result = log4rs::init_config(config);
         if result.is_err() {
@@ -93,6 +95,11 @@ pub fn init_logging_once_for<'a, 'b>(
     level: impl Into<Option<LevelFilter>>,
     pattern: impl Into<Option<&'b str>>,
 ) {
+    // No need to bother even constructing the config if we know init is already done.
+    if INIT.is_completed() {
+        return;
+    }
+
     let level = level.into().unwrap_or(LevelFilter::Trace);
     let pattern = pattern.into().unwrap_or("{l} {M}::{L} {m}{n}");
     const APPENDER_NAME: &str = "appender";
