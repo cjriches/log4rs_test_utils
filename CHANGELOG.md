@@ -1,6 +1,6 @@
 # Changelog
 
-## Unreleased
+## v0.2.3
 * Added `TestConsoleAppender::make_config` to get the config used by `init_logging_once_for`
   without actually initializing the logger with it.
 
